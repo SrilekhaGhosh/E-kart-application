@@ -84,7 +84,6 @@ export const verifyMail = async (token, email) => {
 
     // Optional: Verify connection configuration
     await transporter.verify();
-    console.log("Mail server is ready to send messages");
 
     // Send the verification email
     await transporter.sendMail({
@@ -107,9 +106,7 @@ Thanks,`,
       //        <p>Thanks</p>`
     });
 
-    console.log("Email Sent Successfully ✅");
   } catch (error) {
-    console.error("Error sending email:", error);
     throw error;
   }
 };

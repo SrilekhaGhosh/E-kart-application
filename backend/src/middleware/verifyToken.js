@@ -9,7 +9,6 @@ import Cart from "../models/cartSchema.js";
 export const verifyToken = async (req, res) => {
     try {
         const authHeader = req.headers.authorization
-        console.log("authHeader", authHeader);
         
         if (!authHeader) {
             return res.status(401).json({

@@ -15,7 +15,8 @@ import {
   addProduct, 
   editProduct, 
   getSellerHistory,
-  deleteProduct
+  deleteProduct,
+  getSellerProducts
 } from "../controllers/sellerController.js";
 
 const marketRoute = express.Router();
@@ -36,5 +37,6 @@ marketRoute.post("/seller/product", hasToken, addProduct);
 marketRoute.put("/seller/product/:id", hasToken, editProduct);
 marketRoute.delete("/seller/product/:id", hasToken, deleteProduct);
 marketRoute.get("/seller/history", hasToken, getSellerHistory);
+marketRoute.get("/seller/my-products", hasToken, getSellerProducts);
 
 export default marketRoute;

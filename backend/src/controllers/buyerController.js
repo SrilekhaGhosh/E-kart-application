@@ -1,7 +1,7 @@
-import Product from "../models/ProductSchema.js";
+import Product from "../models/productSchema.js";
 import Cart from "../models/cartSchema.js";
 import Order from "../models/orderSchema.js";
-import Profile from  "../models/profileSchema.js" 
+import Profile from "../models/profileSchema.js" 
 
 
 
@@ -37,26 +37,101 @@ export const updateMarketProfile = async (req, res) => {
     res.json(profile);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
-
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId, quantity, setQuantity } = req.body;
+
+    // 1️⃣ Validate productId
+    if (!productId) {
+      return res.status(400).json({ msg: "Product ID is required" });
+    }
+
+    // 2️⃣ Validate quantity properly
+    if (quantity === undefined || quantity < 0) {
+      return res.status(400).json({ msg: "Valid quantity is required" });
+    }
+
+    // 3️⃣ Check product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    // 4️⃣ Get or create cart
     let cart = await Cart.findOne({ buyerId: req.userId });
 
     if (!cart) {
       cart = new Cart({ buyerId: req.userId, items: [] });
     }
 
-    const itemIndex = cart.items.findIndex(p => p.productId.toString() === productId);
+    // Clean invalid items
+    cart.items = cart.items.filter(item => item.productId);
+
+    const itemIndex = cart.items.findIndex(
+      item => item.productId.toString() === productId
+    );
+
+    // 5️⃣ If item already exists in cart
     if (itemIndex > -1) {
-      cart.items[itemIndex].quantity += quantity;
+
+      if (setQuantity) {
+
+        // 🔥 REMOVE ITEM COMPLETELY
+        if (quantity === 0) {
+          cart.items.splice(itemIndex, 1);
+        } else {
+
+          if (quantity > product.stock) {
+            return res.status(400).json({
+              msg: `Only ${product.stock} items available in stock`
+            });
+          }
+
+          cart.items[itemIndex].quantity = quantity;
+        }
+
+      } else {
+
+        const newQuantity = cart.items[itemIndex].quantity + quantity;
+
+        if (newQuantity > product.stock) {
+          return res.status(400).json({
+            msg: `Only ${product.stock} items available in stock`
+          });
+        }
+
+        cart.items[itemIndex].quantity = newQuantity;
+      }
+
     } else {
-      cart.items.push({ productId, quantity });
+
+      // 6️⃣ If item does NOT exist in cart
+      if (quantity > 0) {
+
+        if (quantity > product.stock) {
+          return res.status(400).json({
+            msg: `Only ${product.stock} items available in stock`
+          });
+        }
+
+        cart.items.push({ productId, quantity });
+      }
     }
+
+    // 7️⃣ Save cart
     await cart.save();
-    res.json(cart);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+
+    // 8️⃣ Populate cart
+    const populatedCart = await Cart.findById(cart._id)
+      .populate('items.productId', 'name price images stock sellerId');
+
+    res.status(200).json(populatedCart);
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message, error: err.message });
+  }
 };
+
 
 // Get all orders for the logged-in buyer
 export const getMyOrders = async (req, res) => {
@@ -78,15 +153,24 @@ export const getCartDetails = async (req, res) => {
   try {
     const cart = await Cart.findOne({ buyerId: req.userId })
       .populate('items.productId', 'name price images stock sellerId');
-    res.json(cart || { items: [] });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    
+    const result = cart || { items: [] };
+    
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ msg: err.message, error: err.message });
+  }
 };
 
 export const buy = async (req, res) => {
   try {
+    console.log('🛒 BUY REQUEST - User:', req.userId);
+    
     // 1. Get Cart
     const cart = await Cart.findOne({ buyerId: req.userId }).populate('items.productId');
     if (!cart || cart.items.length === 0) return res.status(400).json({ msg: "Cart is empty" });
+
+    console.log('📦 Cart items count:', cart.items.length);
 
     // 2. CHECK PROFILE FOR ADDRESS (Critical Step)
     const userProfile = await Profile.findOne({ userId: req.userId });
@@ -99,19 +183,32 @@ export const buy = async (req, res) => {
 
     // 3. Process Items
     for (let item of cart.items) {
-      const product = item.productId;
+      if (!item.productId) {
+        return res.status(400).json({ msg: "One or more items in your cart no longer exist." });
+      }
 
+      // Fetch the product directly to ensure we can save it properly
+      const productId = item.productId._id || item.productId;
+      const product = await Product.findById(productId);
+      
       if (!product) {
         return res.status(400).json({ msg: "One or more items in your cart no longer exist." });
       }
+
+      console.log(`📊 Product: ${product.name}, Current Stock: ${product.stock}, Order Quantity: ${item.quantity}`);
 
       if (product.stock < item.quantity) {
         return res.status(400).json({ msg: `Item ${product.name} is out of stock` });
       }
      
-
+      // Decrement stock and save
+      const oldStock = product.stock;
       product.stock -= item.quantity;
       await product.save();
+      
+      // Verify the save worked
+      const verifyProduct = await Product.findById(productId);
+      console.log(`✅ Stock updated: ${product.name} from ${oldStock} to ${verifyProduct.stock} (verified: ${verifyProduct.stock})`);
 
       totalAmount += product.price * item.quantity;
       orderItems.push({
@@ -138,6 +235,11 @@ export const buy = async (req, res) => {
     cart.items = [];
     await cart.save();
 
+    console.log('✅ Order placed successfully:', newOrder._id);
+
     res.json({ msg: "Order placed!", orderId: newOrder._id });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    console.error('❌ BUY ERROR:', err);
+    res.status(500).json({ error: err.message }); 
+  }
 };

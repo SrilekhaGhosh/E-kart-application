@@ -20,6 +20,19 @@ export const addProduct = async (req, res) => {
     res.status(500).json({ error: err.message }); 
   }
 };
+export const getSellerProducts = async (req, res) => {
+  try {
+    // Find all products where the sellerId matches the logged-in user's ID
+    const myProducts = await Product.find({ sellerId: req.userId }).sort({ createdAt: -1 });
+    
+    // Send back the array of products (it will be an empty array [] if they haven't added any yet)
+    res.status(200).json(myProducts);
+  } catch (err) { 
+    res.status(500).json({ error: err.message }); 
+  }
+};
+
+
 
 export const editProduct = async (req, res) => {
     try {
@@ -44,7 +57,7 @@ export const getSellerHistory = async (req, res) => {
   try {
     // Find all orders containing this seller's items
     const orders = await Order.find({ "items.sellerId": req.userId })
-      .populate('buyerId', 'userName email') // Get Buyer info from backenduser
+      .populate('buyerId', 'userName email') 
       .sort({ createdAt: -1 });
 
     // Filter to show ONLY relevant items

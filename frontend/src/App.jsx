@@ -8,6 +8,10 @@ import Signup from './pages/SignUp'
 import Home from './pages/Home'
 import VerifyMail from './pages/VerifyMail'
 import Cover from './pages/Cover'
+import ProductList from './pages/ProductList'
+import CartPage from './pages/CartPage'
+import SellerDashboard from './pages/SellerDashboard'
+import BuyerDashboard from './pages/BuyerDashboard'
 
 function App() {
 
@@ -22,6 +26,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
           <Route path="/user/verify/:token" element={<VerifyMail />} />
+
+          <Route path="/products" element={<ProductList />} />
+
+          <Route path="/cart" element={<CartPage />} />
+
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
+
+          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
 
         </Routes>
 
