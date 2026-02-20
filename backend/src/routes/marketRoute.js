@@ -16,7 +16,8 @@ import {
   editProduct, 
   getSellerHistory,
   deleteProduct,
-  getSellerProducts
+  getSellerProducts,
+  upload
 } from "../controllers/sellerController.js";
 
 const marketRoute = express.Router();
@@ -33,8 +34,8 @@ marketRoute.post("/buy", hasToken, buy);
 marketRoute.get("/orders", hasToken, getMyOrders);
 
 // --- SELLER FEATURES ---
-marketRoute.post("/seller/product", hasToken, addProduct);
-marketRoute.put("/seller/product/:id", hasToken, editProduct);
+marketRoute.post("/seller/product", hasToken,upload.single('image'), addProduct);
+marketRoute.put("/seller/product/:id", hasToken, upload.single('image'),editProduct);
 marketRoute.delete("/seller/product/:id", hasToken, deleteProduct);
 marketRoute.get("/seller/history", hasToken, getSellerHistory);
 marketRoute.get("/seller/my-products", hasToken, getSellerProducts);
