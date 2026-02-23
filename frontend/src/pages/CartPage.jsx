@@ -62,7 +62,7 @@ const CartPage = () => {
 
   try {
     await dispatch(
-      updateCartQuantity({ productId, token })
+      updateCartQuantity({ productId, quantity: 0 , token })
     ).unwrap();
 
     await dispatch(fetchCart(token)).unwrap();
@@ -120,6 +120,7 @@ const CartPage = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-gray-800 mb-2">Shopping Cart</h2>
+          <button onClick={() => navigate('/products')} className="text-blue-600 hover:text-blue-800 mb-2">← Back to Products</button>
           <p className="text-gray-600">Review your items and proceed to checkout</p>
         </div>
         
@@ -163,9 +164,12 @@ const CartPage = () => {
                 
                 return (
                   <div key={key} className="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6">
+                    
                     <div className="flex flex-col sm:flex-row gap-4">
                       {/* Product Image */}
                       <div className="flex-shrink-0">
+                        
+                        
                         <img
                           src={item.productId.images?.[0] || '/placeholder.png'}
                           alt={item.productId.name}

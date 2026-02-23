@@ -8,7 +8,9 @@ import {
   buy, 
   getMarketProfile,   
   updateMarketProfile ,
-  getMyOrders
+  getMyOrders,
+  getProductById,
+  updateCart
 } from "../controllers/buyerController.js";
 
 import { 
@@ -29,7 +31,10 @@ marketRoute.get("/products", getAllProducts);
 marketRoute.get("/profile", hasToken, getMarketProfile);      // Gets Address + Orders
 marketRoute.put("/profile", hasToken, updateMarketProfile);   // Updates Address/Business Info
 marketRoute.post("/cart", hasToken, addToCart);
+marketRoute.put("/cart", hasToken, updateCart);
+marketRoute.delete("/product/:id", hasToken, deleteProduct);
 marketRoute.get("/cart", hasToken, getCartDetails);
+marketRoute.get("/products/:id", getProductById);  
 marketRoute.post("/buy", hasToken, buy);
 marketRoute.get("/orders", hasToken, getMyOrders);
 

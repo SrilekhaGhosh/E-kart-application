@@ -131,6 +131,68 @@ export const addToCart = async (req, res) => {
     res.status(500).json({ msg: err.message, error: err.message });
   }
 };
+export const updateCart = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+
+    // 1️⃣ Validate
+    if (!productId) {
+      return res.status(400).json({ msg: "Product ID is required" });
+    }
+
+    if (quantity === undefined || quantity < 0) {
+      return res.status(400).json({ msg: "Valid quantity is required" });
+    }
+
+    // 2️⃣ Find product
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    // 3️⃣ Find cart
+    const cart = await Cart.findOne({ buyerId: req.userId });
+
+    if (!cart) {
+      return res.status(404).json({ msg: "Cart not found" });
+    }
+
+    // 4️⃣ Find item inside cart
+    const itemIndex = cart.items.findIndex(
+      item => item.productId.toString() === productId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ msg: "Item not found in cart" });
+    }
+
+    // 5️⃣ If quantity = 0 → REMOVE item
+    if (quantity === 0) {
+      cart.items.splice(itemIndex, 1);
+    } else {
+      // Check stock
+      if (quantity > product.stock) {
+        return res.status(400).json({
+          msg: `Only ${product.stock} items available in stock`
+        });
+      }
+
+      cart.items[itemIndex].quantity = quantity;
+    }
+
+    // 6️⃣ Save cart
+    await cart.save();
+
+    // 7️⃣ Populate updated cart
+    const updatedCart = await Cart.findById(cart._id)
+      .populate('items.productId', 'name price images stock sellerId');
+
+    res.status(200).json(updatedCart);
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
 
 
 // Get all orders for the logged-in buyer
@@ -144,6 +206,24 @@ export const getMyOrders = async (req, res) => {
     }
 
     res.status(200).json({ orders });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+export const getProductById = async (req, res) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      isActive: true
+    });
+
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    res.status(200).json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

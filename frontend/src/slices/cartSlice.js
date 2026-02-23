@@ -43,7 +43,7 @@ export const updateCartQuantity = createAsyncThunk(
   async ({ productId, quantity, token }, { rejectWithValue }) => {
     try {
       console.log('Redux: Updating cart quantity', { productId, quantity });
-      const response = await axios.post(
+      const response = await axios.put(
         'http://localhost:8001/market/cart',
         { productId, quantity, setQuantity: true },
         { headers: { Authorization: `Bearer ${token}` } }

@@ -89,6 +89,11 @@ export const editProduct = async (req, res) => {
     }
 };
 
+
+
+
+
+
 export const getSellerProducts = async (req, res) => {
     try {
         const myProducts = await Product.find({ sellerId: req.userId }).sort({ createdAt: -1 });
@@ -98,14 +103,39 @@ export const getSellerProducts = async (req, res) => {
     }
 };
 
+// export const deleteProduct = async (req, res) => {
+//     try {
+//         const product = await Product.findOneAndDelete({ _id: req.params.id, sellerId: req.userId });
+//         if (!product) return res.status(404).json({ msg: "Product not found" });
+//         res.json({ msg: "Product Deleted" });
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// };
+
 export const deleteProduct = async (req, res) => {
-    try {
-        const product = await Product.findOneAndDelete({ _id: req.params.id, sellerId: req.userId });
-        if (!product) return res.status(404).json({ msg: "Product not found" });
-        res.json({ msg: "Product Deleted" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+    // 1️⃣ Delete product (only seller can delete)
+    const product = await Product.findOneAndDelete({
+      _id: req.params.id,
+      sellerId: req.userId
+    });
+
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
     }
+
+    // 2️⃣ Remove this product from ALL carts
+    await Cart.updateMany(
+      { "items.productId": product._id },
+      { $pull: { items: { productId: product._id } } }
+    );
+
+    res.json({ msg: "Product deleted and removed from all carts" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const getSellerHistory = async (req, res) => {
