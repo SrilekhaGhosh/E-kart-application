@@ -219,7 +219,19 @@ const CartPage = () => {
                     const itemTotal = item.productId.price * item.quantity;
 
                     return (
-                      <div key={key} className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition p-5">
+                      <div
+                        key={key}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => navigate(`/product/${item.productId._id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate(`/product/${item.productId._id}`);
+                          }
+                        }}
+                        className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      >
                         <div className="flex flex-col sm:flex-row gap-4">
                           {/* Product Image */}
                           <div className="flex-shrink-0">
@@ -255,7 +267,10 @@ const CartPage = () => {
                             <div className="flex items-center gap-3">
                               <button
                                 className="w-9 h-9 flex items-center justify-center bg-gray-100 border border-gray-200 rounded-full hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={() => handleQuantityChange(item.productId._id, item.quantity - 1, item.productId.stock)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuantityChange(item.productId._id, item.quantity - 1, item.productId.stock);
+                                }}
                                 disabled={item.quantity <= 1}
                               >
                                 <span className="text-lg font-bold">−</span>
@@ -263,7 +278,10 @@ const CartPage = () => {
                               <span className="w-12 text-center font-extrabold text-lg text-gray-900">{item.quantity}</span>
                               <button
                                 className="w-9 h-9 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1, item.productId.stock)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuantityChange(item.productId._id, item.quantity + 1, item.productId.stock);
+                                }}
                                 disabled={item.quantity >= item.productId.stock}
                               >
                                 <span className="text-lg font-bold">+</span>
@@ -273,7 +291,10 @@ const CartPage = () => {
                             {/* Remove Button */}
                             <button
                               className="px-4 py-2 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition flex items-center gap-2"
-                              onClick={() => handleRemoveItem(item.productId._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveItem(item.productId._id);
+                              }}
                             >
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
