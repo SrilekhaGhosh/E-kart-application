@@ -1,1 +1,1 @@
-backwnd = https://e-kart-application-1.onrender.com/
+backend = https://e-kart-application-1.onrender.com/
