@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchBuyerOrders, fetchBuyerProfile } from "../slices/buyerSlice"
+import { apiUrl, API_BASE_URL } from "../config/api"
 
 const Header = () => {
   const navigate = useNavigate()
@@ -18,7 +19,7 @@ const Header = () => {
   const normalizeProfileImageUrl = (value) => {
     if (!value) return null
     if (typeof value !== "string") return null
-    return value.startsWith("http") ? value : `http://localhost:8001${value}`
+    return value.startsWith("http") ? value : `${API_BASE_URL}${value}`
   }
 
   const [userProfileImage, setUserProfileImage] = useState(() => {
@@ -70,7 +71,7 @@ const Header = () => {
       if (profileImage) formData.append("profileImage", profileImage)
 
       const token = localStorage.getItem("accessToken")
-      const res = await fetch("http://localhost:8001/user/update-profile", {
+      const res = await fetch(apiUrl("/user/update-profile"), {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formData

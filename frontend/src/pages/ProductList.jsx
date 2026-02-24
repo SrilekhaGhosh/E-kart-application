@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../slices/productsSlice";
 import { fetchCart } from "../slices/cartSlice";
+import { apiUrl } from "../config/api";
 
 const ProductList = () => {
   const dispatch = useDispatch();
@@ -56,7 +57,7 @@ const ProductList = () => {
     // Load categories for multi-select dropdown
     const load = async () => {
       try {
-        const res = await fetch("http://localhost:8001/market/categories");
+        const res = await fetch(apiUrl("/market/categories"));
         const data = await res.json();
         setCategoryOptions(Array.isArray(data?.items) ? data.items : []);
       } catch {

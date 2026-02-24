@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { apiUrl } from '../config/api';
 
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (token, { rejectWithValue }) => {
     try {
       console.log('Redux: Fetching cart');
-      const response = await axios.get('http://localhost:8001/market/cart', {
+      const response = await axios.get(apiUrl('/market/cart'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Redux: Cart fetched', response.data);
@@ -25,7 +26,7 @@ export const addToCart = createAsyncThunk(
     try {
       console.log('Redux: Adding to cart', { productId, quantity });
       const response = await axios.post(
-        'http://localhost:8001/market/cart',
+        apiUrl('/market/cart'),
         { productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -44,7 +45,7 @@ export const updateCartQuantity = createAsyncThunk(
     try {
       console.log('Redux: Updating cart quantity', { productId, quantity });
       const response = await axios.put(
-        'http://localhost:8001/market/cart',
+        apiUrl('/market/cart'),
         { productId, quantity, setQuantity: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -62,7 +63,7 @@ export const placeOrder = createAsyncThunk(
   async (token, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        'http://localhost:8001/market/buy',
+        apiUrl('/market/buy'),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

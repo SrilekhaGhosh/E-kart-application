@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
+import { apiUrl } from '../config/api';
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -96,7 +97,7 @@ const CartPage = () => {
 
     // Ensure buyer has address before ordering; if missing, redirect to address editor (no alert)
     try {
-      const profileRes = await axios.get('http://localhost:8001/market/profile', {
+      const profileRes = await axios.get(apiUrl('/market/profile'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const addr = profileRes.data?.address;

@@ -5,6 +5,7 @@ import { fetchSellerProducts, fetchSellerHistory } from '../slices/sellerSlice';
 import Header from '../components/Header';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { apiUrl } from '../config/api';
 
 const formatCurrency = (value) => {
     const numberValue = Number(value || 0);
@@ -243,7 +244,7 @@ const SellerDashboard = () => {
         // Load category options for dropdown
         const load = async () => {
             try {
-                const res = await fetch("http://localhost:8001/market/categories");
+                const res = await fetch(apiUrl('/market/categories'));
                 const data = await res.json();
                 const items = Array.isArray(data?.items) ? data.items : [];
                 // Backend already normalizes to lowercase, but keep it safe
@@ -402,9 +403,9 @@ const SellerDashboard = () => {
 
         try {
             if (editId) {
-                await axios.put(`http://localhost:8001/market/seller/product/${editId}`, data, {
-                    headers: { 
-                        Authorization: `Bearer ${token}`
+                await axios.put(apiUrl(`/market/seller/product/${editId}`), data, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
                     },
                 });
                 toast.success('Product updated');
@@ -412,9 +413,9 @@ const SellerDashboard = () => {
             } else {
                 if (!imageFiles.length) return toast.error("Please select at least one image");
                 
-                await axios.post('http://localhost:8001/market/seller/product', data, {
-                    headers: { 
-                        Authorization: `Bearer ${token}`
+                await axios.post(apiUrl('/market/seller/product'), data, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
                     },
                 });
                 toast.success('Product added');
@@ -450,7 +451,7 @@ const SellerDashboard = () => {
     const handleDelete = async (id) => {
         if(!window.confirm("Delete this product?")) return;
         try {
-            await axios.delete(`http://localhost:8001/market/seller/product/${id}`, {
+            await axios.delete(apiUrl(`/market/seller/product/${id}`), {
                 headers: { Authorization: `Bearer ${token}` },
             });
             toast.success('Product deleted');

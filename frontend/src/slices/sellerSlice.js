@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { apiUrl } from '../config/api';
 
 export const fetchSellerProducts = createAsyncThunk(
   'seller/fetchSellerProducts',
   async (token) => {
-    const response = await axios.get('http://localhost:8001/market/seller/my-products', {
+    const response = await axios.get(apiUrl('/market/seller/my-products'), {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
@@ -14,7 +15,7 @@ export const fetchSellerProducts = createAsyncThunk(
 export const fetchSellerHistory = createAsyncThunk(
   'seller/fetchSellerHistory',
   async (token) => {
-    const response = await axios.get('http://localhost:8001/market/seller/history', {
+    const response = await axios.get(apiUrl('/market/seller/history'), {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;

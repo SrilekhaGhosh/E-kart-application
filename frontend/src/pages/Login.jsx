@@ -2,6 +2,7 @@ import axios from "axios"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
+import { apiUrl, API_BASE_URL } from "../config/api"
 
 const Login = () => {
   const navigate = useNavigate()
@@ -11,12 +12,12 @@ const Login = () => {
   const normalizeProfileImageUrl = (value) => {
     if (!value) return null
     if (typeof value !== "string") return null
-    return value.startsWith("http") ? value : `http://localhost:8001${value}`
+    return value.startsWith("http") ? value : `${API_BASE_URL}${value}`
   }
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:8001/user/login", {
+      const res = await axios.post(apiUrl("/user/login"), {
         email,
         password,
       })
