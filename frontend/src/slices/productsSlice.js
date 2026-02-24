@@ -5,9 +5,10 @@ const API_URL = "http://localhost:8001/market/products";
 
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
-  async () => {
-    const response = await axios.get(API_URL);
-    return response.data;
+  async (params = {}) => {
+    const { append = false, ...queryParams } = params || {};
+    const response = await axios.get(API_URL, { params: queryParams });
+    return { data: response.data, append: Boolean(append) };
   }
 );
 
@@ -23,12 +24,27 @@ const productsSlice = createSlice({
   name: "products",
   initialState: {
     items: [],
+    page: 1,
+    limit: 12,
+    totalItems: 0,
+    totalPages: 1,
     selectedProduct: null,
     status: "idle",
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
+    const appendUniqueById = (existing = [], incoming = []) => {
+      const map = new Map();
+      for (const item of existing) {
+        if (item && item._id) map.set(String(item._id), item);
+      }
+      for (const item of incoming) {
+        if (item && item._id) map.set(String(item._id), item);
+      }
+      return Array.from(map.values());
+    };
+
     builder
       // Fetch All
       .addCase(fetchProducts.pending, (state) => {
@@ -36,7 +52,28 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.items = action.payload;
+
+        const payload = action.payload;
+        const data = payload?.data !== undefined ? payload.data : payload;
+        const append = Boolean(payload?.append);
+
+        // Backward compatible: API may return array or { items, page, ... }
+        if (Array.isArray(data)) {
+          state.items = append ? appendUniqueById(state.items, data) : data;
+          state.page = 1;
+          state.limit = data.length;
+          state.totalItems = data.length;
+          state.totalPages = 1;
+        } else {
+          const nextItems = data?.items || [];
+          const nextPage = data?.page || 1;
+
+          state.items = append && nextPage > 1 ? appendUniqueById(state.items, nextItems) : nextItems;
+          state.page = nextPage;
+          state.limit = data?.limit || 12;
+          state.totalItems = data?.totalItems || 0;
+          state.totalPages = data?.totalPages || 1;
+        }
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = "failed";

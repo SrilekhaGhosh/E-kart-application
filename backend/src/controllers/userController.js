@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import sessionSchema from "../models/sessionSchema.js";
 import { verifyMail } from "../emailVerify/verifyMail.js";
-import fs from "fs";
+import { uploadImageBuffer } from "../config/cloudinary.js";
 
 
 // export const register = async (req, res) => {
@@ -206,15 +206,16 @@ export const updateUserProfile = async (req, res) => {
         });
       }
 
-      // delete old image
-      if (user.profileImage) {
-        const oldPath = `.${user.profileImage}`;
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
+      const uploadResult = await uploadImageBuffer(req.file.buffer, {
+        folder: `ekart/profiles/${user._id}`,
+      });
+
+      const imageUrl = uploadResult?.secure_url;
+      if (!imageUrl) {
+        return res.status(500).json({ status: false, message: "Cloudinary upload failed" });
       }
 
-      user.profileImage = `/upload/profiles/${req.file.filename}`;
+      user.profileImage = imageUrl;
     }
 
     // update username if provided

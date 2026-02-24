@@ -21,6 +21,22 @@ export const fetchBuyerOrders = createAsyncThunk(
   }
 );
 
+export const updateBuyerMarketProfile = createAsyncThunk(
+  'buyer/updateBuyerMarketProfile',
+  async ({ token, address }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        'http://localhost:8001/market/profile',
+        { address },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { msg: error.message });
+    }
+  }
+);
+
 const buyerSlice = createSlice({
   name: 'buyer',
   initialState: {
@@ -45,6 +61,18 @@ const buyerSlice = createSlice({
       })
       .addCase(fetchBuyerOrders.fulfilled, (state, action) => {
         state.orders = action.payload;
+      })
+      .addCase(updateBuyerMarketProfile.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateBuyerMarketProfile.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.profile = action.payload;
+      })
+      .addCase(updateBuyerMarketProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.msg || action.error.message;
       });
   },
 });

@@ -8,6 +8,12 @@ const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
+  const normalizeProfileImageUrl = (value) => {
+    if (!value) return null
+    if (typeof value !== "string") return null
+    return value.startsWith("http") ? value : `http://localhost:8001${value}`
+  }
+
   const handleLogin = async () => {
     try {
       const res = await axios.post("http://localhost:8001/user/login", {
@@ -23,14 +29,9 @@ const Login = () => {
       localStorage.setItem("email", res.data.user.email)
       localStorage.setItem("token", res.data.accessToken)
 
-      if (res.data.user.profileImage) {
-        localStorage.setItem(
-          "profileImage",
-          `http://localhost:8001${res.data.user.profileImage}`
-        )
-      } else {
-        localStorage.removeItem("profileImage")
-      }
+      const imgUrl = normalizeProfileImageUrl(res.data.user.profileImage)
+      if (imgUrl) localStorage.setItem("profileImage", imgUrl)
+      else localStorage.removeItem("profileImage")
 
       localStorage.setItem("user", JSON.stringify(res.data.user))
       navigate("/home")
@@ -40,44 +41,65 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br bg-blue-300">
-      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-center text-2xl font-semibold text-gray-800 mb-8">
-          Login
-        </h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md">
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-extrabold shadow-sm">
+            E
+          </div>
+          <div className="text-left leading-tight">
+            <div className="text-xl font-extrabold text-gray-900">EKart</div>
+            <div className="text-xs text-gray-500">Welcome back</div>
+          </div>
+        </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-3 mb-4 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-        />
+        <div className="bg-white/80 backdrop-blur-lg p-8 sm:p-10 rounded-3xl shadow border border-gray-200">
+          <h2 className="text-center text-2xl font-extrabold text-gray-900">
+            Login
+          </h2>
+          <p className="text-center text-sm text-gray-600 mt-2 mb-8">Sign in to continue shopping</p>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-3 mb-6 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-        />
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Email</div>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
+              />
+            </div>
 
-        <button
-          onClick={handleLogin}
-          className="w-full py-3 mb-5 bg-gradient-to-br bg-blue-500 text-white rounded-md text-base font-bold transition hover:-translate-y-0.5 hover:shadow-lg"
-        >
-          Login
-        </button>
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Password</div>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
+              />
+            </div>
+          </div>
 
-        <p className="text-center text-sm text-gray-600">
-          Don&apos;t have an account?{" "}
-          <span
-            onClick={() => navigate("/signup")}
-            className="text-indigo-500 font-bold cursor-pointer hover:text-purple-600 hover:underline"
+          <button
+            onClick={handleLogin}
+            className="w-full py-3.5 mt-6 mb-5 bg-blue-600 text-white rounded-2xl text-base font-extrabold transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-blue-700"
           >
-            Sign up
-          </span>
-        </p>
+            Login
+          </button>
+
+          <p className="text-center text-sm text-gray-600">
+            Don&apos;t have an account?{" "}
+            <span
+              onClick={() => navigate("/register/buyer")}
+              className="text-indigo-700 font-extrabold cursor-pointer hover:underline"
+            >
+             Register
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   )

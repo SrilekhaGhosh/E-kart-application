@@ -3,6 +3,7 @@ import { hasToken } from "../middleware/hasToken.js"; // Using YOUR existing mid
 
 import { 
   getAllProducts, 
+  getMarketCategories,
   addToCart, 
   getCartDetails, 
   buy, 
@@ -26,6 +27,7 @@ const marketRoute = express.Router();
 
 // --- PUBLIC ---
 marketRoute.get("/products", getAllProducts);
+marketRoute.get("/categories", getMarketCategories);
 
 // --- BUYER FEATURES (Protected by Token) ---
 marketRoute.get("/profile", hasToken, getMarketProfile);      // Gets Address + Orders
@@ -39,8 +41,8 @@ marketRoute.post("/buy", hasToken, buy);
 marketRoute.get("/orders", hasToken, getMyOrders);
 
 // --- SELLER FEATURES ---
-marketRoute.post("/seller/product", hasToken,upload.single('image'), addProduct);
-marketRoute.put("/seller/product/:id", hasToken, upload.single('image'),editProduct);
+marketRoute.post("/seller/product", hasToken, upload.array('images', 6), addProduct);
+marketRoute.put("/seller/product/:id", hasToken, upload.array('images', 6), editProduct);
 marketRoute.delete("/seller/product/:id", hasToken, deleteProduct);
 marketRoute.get("/seller/history", hasToken, getSellerHistory);
 marketRoute.get("/seller/my-products", hasToken, getSellerProducts);

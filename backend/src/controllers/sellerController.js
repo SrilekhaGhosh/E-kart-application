@@ -1,16 +1,12 @@
 import Product from "../models/productSchema.js";
 import Order from "../models/orderSchema.js";
+import Cart from "../models/cartSchema.js";
 import multer from "multer";
-import path from "path"; // Required for file extensions
+import { uploadImageBuffer } from "../config/cloudinary.js";
 
 // --- MULTER CONFIGURATION ---
-const storage = multer.diskStorage({
-    destination: "uploads/", // Make sure this folder exists in your project root
-    filename: function (req, file, cb) {
-        // Creates a unique filename: image-17000000000.jpg
-        cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
-    }
-});
+// Memory storage so nothing is written to disk; we upload buffer to Cloudinary.
+const storage = multer.memoryStorage();
 
 // Filter to only allow images
 const fileFilter = (req, file, cb) => {
@@ -35,15 +31,31 @@ export const addProduct = async (req, res) => {
     try {
         const { name, price, description, category, stock } = req.body;
 
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: "No image uploaded" });
+        const normalizedCategory = (category || "").toString().trim().toLowerCase();
+        if (!normalizedCategory) {
+            return res.status(400).json({ success: false, message: "Category is required" });
         }
 
-        // Construct the URL to access the image
-        // Inside addProduct or editProduct
-const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        const files = Array.isArray(req.files) ? req.files : [];
+        if (!files.length) {
+            return res.status(400).json({ success: false, message: "No images uploaded" });
+        }
 
-// Example output: http://localhost:8001/uploads/image-17156789.png
+        const uploaded = await Promise.all(
+            files.map((f) =>
+                uploadImageBuffer(f.buffer, {
+                    folder: `ekart/products/${req.userId}`,
+                })
+            )
+        );
+
+        const imageUrls = uploaded
+            .map((u) => u?.secure_url)
+            .filter(Boolean);
+
+        if (!imageUrls.length) {
+            return res.status(500).json({ msg: "Cloudinary upload failed" });
+        }
         // Check duplicate name for this specific seller
         const exists = await Product.findOne({ sellerId: req.userId, name });
         if (exists) return res.status(400).json({ msg: "Product with this name already exists." });
@@ -53,9 +65,9 @@ const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filena
             name, 
             price, 
             description,
-            category, 
+            category: normalizedCategory,
             stock, 
-            images: [imageUrl] // Saving the URL in the array
+            images: imageUrls // Saving URLs in the array
         });
 
         await newProduct.save();
@@ -70,10 +82,34 @@ export const editProduct = async (req, res) => {
     try {
         const updateData = { ...req.body };
 
-        // If a new file is uploaded, update the image URL
-        if (req.file) {
-            const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-            updateData.images = [imageUrl]; 
+        if (updateData.category !== undefined) {
+            const normalizedCategory = (updateData.category || "").toString().trim().toLowerCase();
+            if (!normalizedCategory) {
+                return res.status(400).json({ msg: "Category is required" });
+            }
+            updateData.category = normalizedCategory;
+        }
+
+        // If new files are uploaded, replace product images
+        const files = Array.isArray(req.files) ? req.files : [];
+        if (files.length) {
+            const uploaded = await Promise.all(
+                files.map((f) =>
+                    uploadImageBuffer(f.buffer, {
+                        folder: `ekart/products/${req.userId}`,
+                    })
+                )
+            );
+
+            const imageUrls = uploaded
+                .map((u) => u?.secure_url)
+                .filter(Boolean);
+
+            if (!imageUrls.length) {
+                return res.status(500).json({ msg: "Cloudinary upload failed" });
+            }
+
+            updateData.images = imageUrls;
         }
 
         const product = await Product.findOneAndUpdate(

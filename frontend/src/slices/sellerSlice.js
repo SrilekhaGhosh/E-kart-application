@@ -34,6 +34,7 @@ const sellerSlice = createSlice({
     builder
       .addCase(fetchSellerProducts.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchSellerProducts.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -43,9 +44,17 @@ const sellerSlice = createSlice({
         state.status = 'failed';
         state.error = action.error.message;
       })
+      .addCase(fetchSellerHistory.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
       .addCase(fetchSellerHistory.fulfilled, (state, action) => {
-           state.status = 'succeeded';
+        state.status = 'succeeded';
         state.history = action.payload;
+      })
+      .addCase(fetchSellerHistory.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
       });
   },
 });

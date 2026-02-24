@@ -7,9 +7,101 @@ import Profile from "../models/profileSchema.js"
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find({ isActive: true, stock: { $gt: 0 } });
-    res.json(products);
+    const page = Math.max(1, parseInt(req.query.page || "1", 10));
+    const limit = Math.min(60, Math.max(1, parseInt(req.query.limit || "12", 10)));
+    const search = (req.query.search || "").toString().trim();
+    const categoryParam = req.query.category;
+    const minPriceRaw = req.query.minPrice;
+    const maxPriceRaw = req.query.maxPrice;
+    const sortBy = (req.query.sortBy || "createdAt").toString();
+    const sortOrder = (req.query.sortOrder || "desc").toString().toLowerCase();
+
+    const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const filter = { isActive: true, stock: { $gt: 0 } };
+
+    const categories = Array.isArray(categoryParam)
+      ? categoryParam
+      : (categoryParam || "")
+          .toString()
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+
+    if (categories.length) {
+      const categoryRegexes = categories.map(
+        (c) => new RegExp(`^${escapeRegExp(c)}$`, "i")
+      );
+      filter.category = { $in: categoryRegexes };
+    }
+
+    const minPriceStr = minPriceRaw === undefined || minPriceRaw === null ? "" : String(minPriceRaw).trim();
+    const maxPriceStr = maxPriceRaw === undefined || maxPriceRaw === null ? "" : String(maxPriceRaw).trim();
+    const hasMinPrice = minPriceStr !== "";
+    const hasMaxPrice = maxPriceStr !== "";
+    const minPrice = hasMinPrice ? Number(minPriceStr) : undefined;
+    const maxPrice = hasMaxPrice ? Number(maxPriceStr) : undefined;
+
+    if (hasMinPrice && Number.isFinite(minPrice)) {
+      filter.price = { ...(filter.price || {}), $gte: minPrice };
+    }
+    if (hasMaxPrice && Number.isFinite(maxPrice)) {
+      filter.price = { ...(filter.price || {}), $lte: maxPrice };
+    }
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const allowedSort = new Set(["createdAt", "price", "name", "stock"]);
+    const safeSortBy = allowedSort.has(sortBy) ? sortBy : "createdAt";
+    const safeSortOrder = sortOrder === "asc" ? 1 : -1;
+    const sort = { [safeSortBy]: safeSortOrder };
+
+    const skip = (page - 1) * limit;
+    const totalItems = await Product.countDocuments(filter);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+    const items = await Product.find(filter)
+      .sort(sort)
+      .collation({ locale: "en", strength: 2 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      items,
+      page,
+      limit,
+      totalItems,
+      totalPages,
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+export const getMarketCategories = async (req, res) => {
+  try {
+    const categories = await Product.distinct("category", {
+      isActive: true,
+      stock: { $gt: 0 },
+    });
+
+    const normalized = (categories || [])
+      .filter(Boolean)
+      .map((c) => c.toString().trim().toLowerCase())
+      .filter(Boolean);
+
+    const items = Array.from(new Set(normalized)).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+
+    res.json({ items });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const getMarketProfile = async (req, res) => {
@@ -27,13 +119,23 @@ export const getMarketProfile = async (req, res) => {
 export const updateMarketProfile = async (req, res) => {
   try {
     const { address, businessName, gstNumber } = req.body;
-    
+
+    const updateDoc = {};
+    if (address !== undefined) updateDoc.address = address;
+    if (businessName !== undefined) updateDoc.businessName = businessName;
+    if (gstNumber !== undefined) updateDoc.gstNumber = gstNumber;
+
     // Upsert: Create if not exists, Update if exists
-    const profile = await Profile.findOneAndUpdate(
+    const updated = await Profile.findOneAndUpdate(
       { userId: req.userId },
-      { $set: { address, businessName, gstNumber } },
+      Object.keys(updateDoc).length ? { $set: updateDoc } : {},
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
+    const profile = await Profile.findById(updated._id)
+      .populate('userId', 'userName email role profileImage')
+      .populate({ path: 'myOrders', options: { sort: { createdAt: -1 } } });
+
     res.json(profile);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
@@ -233,10 +335,19 @@ export const getCartDetails = async (req, res) => {
   try {
     const cart = await Cart.findOne({ buyerId: req.userId })
       .populate('items.productId', 'name price images stock sellerId');
-    
-    const result = cart || { items: [] };
-    
-    res.status(200).json(result);
+
+    if (!cart) {
+      return res.status(200).json({ items: [] });
+    }
+
+    // If any product was deleted, populated productId becomes null. Clean these items.
+    const beforeCount = cart.items.length;
+    cart.items = cart.items.filter((item) => item.productId);
+    if (cart.items.length !== beforeCount) {
+      await cart.save();
+    }
+
+    res.status(200).json(cart);
   } catch (err) {
     res.status(500).json({ msg: err.message, error: err.message });
   }

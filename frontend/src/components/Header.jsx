@@ -1,222 +1,57 @@
-// import React, { useState, useEffect } from 'react'
-// import { useNavigate } from 'react-router-dom'
-// import './Header.css'
-
-// const Header = () => {
-//   const navigate = useNavigate()
-//   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-//   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
-//   const [userName, setUserName] = useState(localStorage.getItem("userName") || "")
-//   const [profileImage, setProfileImage] = useState(null)
-//   const [previewImage, setPreviewImage] = useState("")
-//   const [userProfileImage, setUserProfileImage] = useState(localStorage.getItem("profileImage") || null)
-
-//   const userEmail = localStorage.getItem("email") || "" 
-
-//   const handleProfileImageChange = (e) => {
-//     const file = e.target.files[0]
-//     if (file) {
-//       setProfileImage(file)
-//       const reader = new FileReader()
-//       reader.onloadend = () => {
-//         setPreviewImage(reader.result)
-//       }
-//       reader.readAsDataURL(file)
-//     }
-//   }
-
-//   const handleUpdateProfile = async () => {
-//     try {
-//       const formData = new FormData()
-//       formData.append("userName", userName)
-//       if (profileImage) {
-//         formData.append("profileImage", profileImage)
-//       }
-
-//       const token = localStorage.getItem("accessToken")
-//       const res = await fetch("http://localhost:7001/user/update-profile", {
-//         method: "PUT",
-//         headers: {
-//           "Authorization": `Bearer ${token}`
-//         },
-//         body: formData
-//       })
-
-//       const data = await res.json()
-
-//       if (data.status) {
-//         localStorage.setItem("userName", data.user.userName)
-//         localStorage.setItem("user", JSON.stringify(data.user))
-        
-//         // Update profile image if provided
-//         if (data.user.profileImage) {
-//           const profileImageUrl = `http://localhost:7001${data.user.profileImage}`
-//           localStorage.setItem("profileImage", profileImageUrl)
-//           setUserProfileImage(profileImageUrl)
-//         }
-        
-//         setIsUpdateModalOpen(false)
-//         setIsDropdownOpen(false)
-//       } else {
-//         alert(data.message || "Failed to update profile")
-//       }
-//     } catch (error) {
-//       console.error("Error updating profile:", error)
-//       alert("Error updating profile")
-//     }
-//   }
-
-//   const handleSignOut = () => {
-//     localStorage.clear()
-//     navigate("/login")
-//   }
-
-//   return (
-//     <>
-//       <div className='header-container'>
-//         <div className='header-title'>
-//           <h1>NOTES APP</h1>
-//         </div>
-
-//         <div className='header-profile'>
-//           <button 
-//             className='profile-btn'
-//             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-//           >
-//             <div className='profile-section'>
-//               {userProfileImage ? (
-//                 <img 
-//                   src={userProfileImage} 
-//                   alt="Profile" 
-//                   className='profile-icon'
-//                 />
-//               ) : (
-//                 <div className='profile-icon-placeholder'>👤</div>
-//               )}
-//               <span className='profile-username'>{userName}</span>
-//             </div>
-//           </button>
-
-//           {isDropdownOpen && (
-//             <div className='profile-dropdown'>
-//               <div className='profile-info'>
-//                 {userProfileImage ? (
-//                   <img 
-//                     src={userProfileImage} 
-//                     alt="Profile" 
-//                     className='dropdown-profile-image'
-//                   />
-//                 ) : (
-//                   <div className='dropdown-profile-image-placeholder'>👤</div>
-//                 )}
-//                 <div className='profile-details'>
-//                   <h3>{userName}</h3>
-//                   <p>{userEmail}</p>
-//                 </div>
-//               </div>
-
-//               <hr className='divider' />
-
-//               <button 
-//                 className='dropdown-option'
-//                 onClick={() => {
-//                   setIsUpdateModalOpen(true)
-//                 }}
-//               >
-//                 ✏️ Update Profile
-//               </button>
-
-//               <button 
-//                 className='dropdown-option sign-out-btn'
-//                 onClick={handleSignOut}
-//               >
-//                 🚪 Sign Out
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       {isUpdateModalOpen && (
-//         <div className='update-modal-overlay'>
-//           <div className='update-modal-card'>
-//             <div className='modal-header'>
-//               <h2>Update Profile</h2>
-//               <button 
-//                 className='close-btn'
-//                 onClick={() => setIsUpdateModalOpen(false)}
-//               >
-//                 ✕
-//               </button>
-//             </div>
-
-//             <div className='modal-body'>
-//               <div className='image-upload-section'>
-//                 {previewImage || userProfileImage ? (
-//                   <img 
-//                     src={previewImage || userProfileImage} 
-//                     alt="Preview" 
-//                     className='preview-image'
-//                   />
-//                 ) : (
-//                   <div className='preview-image-placeholder'>👤</div>
-//                 )}
-//                 <input 
-//                   type="file" 
-//                   accept="image/*"
-//                   onChange={handleProfileImageChange}
-//                   className='file-input'
-//                 />
-//               </div>
-
-//               <input
-//                 type="text"
-//                 placeholder="User Name"
-//                 value={userName}
-//                 onChange={(e) => setUserName(e.target.value)}
-//                 className='input-field'
-//               />
-//             </div>
-
-//             <div className='modal-footer'>
-//               <button 
-//                 className='cancel-btn'
-//                 onClick={() => setIsUpdateModalOpen(false)}
-//               >
-//                 Cancel
-//               </button>
-//               <button 
-//                 className='save-btn'
-//                 onClick={handleUpdateProfile}
-//               >
-//                 Save Changes
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </>
-//   )
-// }
-
-// export default Header
 
 
-import React, { useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchBuyerOrders, fetchBuyerProfile } from "../slices/buyerSlice"
 
 const Header = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { profile, orders } = useSelector((state) => state.buyer)
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [userName, setUserName] = useState(localStorage.getItem("userName") || "")
   const [profileImage, setProfileImage] = useState(null)
   const [previewImage, setPreviewImage] = useState("")
-  const [userProfileImage, setUserProfileImage] = useState(
-    localStorage.getItem("profileImage") || null
-  )
+  const normalizeProfileImageUrl = (value) => {
+    if (!value) return null
+    if (typeof value !== "string") return null
+    return value.startsWith("http") ? value : `http://localhost:8001${value}`
+  }
+
+  const [userProfileImage, setUserProfileImage] = useState(() => {
+    const stored = localStorage.getItem("profileImage")
+    if (stored) return stored
+    try {
+      const u = JSON.parse(localStorage.getItem("user"))
+      return normalizeProfileImageUrl(u?.profileImage) || null
+    } catch {
+      return null
+    }
+  })
+  
 
   const userEmail = localStorage.getItem("email") || ""
+
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"))
+    } catch {
+      return null
+    }
+  }, [])
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken")
+    if (!token) return
+    if (user?.role !== "buyer") return
+
+    // Fetch profile/orders once so header can show address + order history
+    dispatch(fetchBuyerProfile(token))
+    dispatch(fetchBuyerOrders(token))
+  }, [dispatch, user?.role])
 
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0]
@@ -246,10 +81,25 @@ const Header = () => {
       if (data.status) {
         localStorage.setItem("userName", data.user.userName)
 
+        // Keep the stored user object in sync
+        try {
+          localStorage.setItem("user", JSON.stringify(data.user))
+        } catch {
+          // ignore
+        }
+
         if (data.user.profileImage) {
-          const imgUrl = `http://localhost:8001${data.user.profileImage}`
-          localStorage.setItem("profileImage", imgUrl)
-          setUserProfileImage(imgUrl)
+          const imgUrl = normalizeProfileImageUrl(data.user.profileImage)
+          if (imgUrl) {
+            localStorage.setItem("profileImage", imgUrl)
+            setUserProfileImage(imgUrl)
+          } else {
+            localStorage.removeItem("profileImage")
+            setUserProfileImage(null)
+          }
+        } else {
+          localStorage.removeItem("profileImage")
+          setUserProfileImage(null)
         }
 
         setIsUpdateModalOpen(false)
@@ -297,7 +147,7 @@ const Header = () => {
 
           {/* Dropdown */}
           {isDropdownOpen && (
-            <div className="absolute right-0 top-[70px] w-[300px] bg-white rounded-lg shadow-xl p-5 z-50">
+            <div className="absolute right-100 top-[70px] w-[300px] bg-white rounded-lg shadow-xl p-5 z-50">
               <div className="flex items-center gap-4 mb-4">
                 {userProfileImage ? (
                   <img
@@ -315,21 +165,77 @@ const Header = () => {
                 </div>
               </div>
 
+              {user?.role === "buyer" && (
+                <div className="mb-4 rounded-md bg-gray-50 p-3">
+                  <div className="text-xs font-semibold text-gray-600 mb-1">Shipping Address</div>
+                  <div className="text-sm text-gray-700">
+                    {profile?.address?.street ? (
+                      <>
+                        {profile.address.street}, {profile.address.city}, {profile.address.country}
+                      </>
+                    ) : (
+                      <span className="text-gray-500">No address saved</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-700 mt-1">
+                    Phone: {profile?.address?.phone || "-"}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false)
+                      navigate("/buyer/dashboard", { state: { openAddressEditor: true } })
+                    }}
+                    className="mt-3 w-full text-left px-3 py-2 bg-white border rounded-md font-medium transition-all hover:bg-indigo-500 hover:text-white"
+                  >
+                    🏠 Edit Address
+                  </button>
+                </div>
+              )}
+
               <hr className="my-4" />
+
+              {user?.role === "buyer" && (
+                <div className="mb-4">
+                  <div className="text-xs font-semibold text-gray-600 mb-2">Order History</div>
+                  {Array.isArray(orders) && orders.length > 0 ? (
+                    <div className="space-y-2">
+                      {orders.slice(0, 3).map((order) => (
+                        <div key={order._id} className="text-sm text-gray-700">
+                          <div className="font-medium truncate">#{order._id}</div>
+                          <div className="text-xs text-gray-500">{order.status} • ₹{order.totalAmount}</div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false)
+                          navigate("/buyer/dashboard")
+                        }}
+                        className="w-full text-left px-3 py-2 bg-gray-100 rounded-md font-medium transition-all hover:bg-indigo-500 hover:text-white"
+                      >
+                        📦 View All Orders
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">No orders found.</div>
+                  )}
+                </div>
+              )}
 
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
                 className="w-full text-left px-3 py-3 mb-3 bg-gray-100 rounded-md font-medium transition-all hover:bg-indigo-500 hover:text-white hover:translate-x-1"
               >
-                ✏️ Update Profile
+                ✏️ Update Profile picture
               </button>
-
+               
               <button
                 onClick={handleSignOut}
                 className="w-full text-left px-3 py-3 bg-gray-100 rounded-md font-medium transition-all hover:bg-indigo-500 hover:text-white hover:translate-x-1"
               >
                 🚪 Sign Out
               </button>
+             
+
             </div>
           )}
         </div>

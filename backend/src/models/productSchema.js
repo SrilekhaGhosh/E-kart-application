@@ -22,7 +22,9 @@ const productSchema = new mongoose.Schema({
       min: 0 },
   category: {
      type: String,
-      required: true 
+      required: true,
+      trim: true,
+      lowercase: true
     },
   stock:
    { type: Number, 
