@@ -58,7 +58,7 @@ const productsSlice = createSlice({
         const data = payload?.data !== undefined ? payload.data : payload;
         const append = Boolean(payload?.append);
 
-        // Backward compatible: API may return array or { items, page, ... }
+       
         if (Array.isArray(data)) {
           state.items = append ? appendUniqueById(state.items, data) : data;
           state.page = 1;
@@ -81,7 +81,7 @@ const productsSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Fetch By ID
+    
       .addCase(fetchProductById.pending, (state) => {
         state.status = "loading";
         state.selectedProduct = null;

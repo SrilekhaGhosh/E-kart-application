@@ -195,7 +195,7 @@ export const updateUserProfile = async (req, res) => {
       });
     }
 
-    // if image uploaded
+    
     if (req.file) {
       const allowedType = ["image/jpeg", "image/png", "image/svg+xml"];
 
@@ -218,7 +218,7 @@ export const updateUserProfile = async (req, res) => {
       user.profileImage = imageUrl;
     }
 
-    // update username if provided
+  
     if (userName) {
       user.userName = userName;
     }

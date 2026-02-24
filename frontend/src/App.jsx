@@ -5,7 +5,7 @@ import Home from './pages/Home'
 import VerifyMail from './pages/VerifyMail'
 import Cover from './pages/Cover'
 import ProductList from './pages/ProductList'
-import ProductDetails from './pages/ProductDetails'   // 👈 ADD THIS
+import ProductDetails from './pages/ProductDetails'  
 import CartPage from './pages/CartPage'
 import SellerDashboard from './pages/SellerDashboard'
 import BuyerDashboard from './pages/BuyerDashboard'
@@ -23,7 +23,7 @@ function App() {
 
         <Route path="/products" element={<ProductList />} />
 
-        {/* 👇 ADD THIS ROUTE */}
+       
         <Route path="/product/:id" element={<ProductDetails />} />
 
         <Route path="/cart" element={<CartPage />} />

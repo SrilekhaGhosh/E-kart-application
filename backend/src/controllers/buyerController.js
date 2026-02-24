@@ -148,37 +148,37 @@ export const addToCart = async (req, res) => {
       return res.status(400).json({ msg: "Product ID is required" });
     }
 
-    // 2️⃣ Validate quantity properly
+   
     if (quantity === undefined || quantity < 0) {
       return res.status(400).json({ msg: "Valid quantity is required" });
     }
 
-    // 3️⃣ Check product exists
+
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ msg: "Product not found" });
     }
 
-    // 4️⃣ Get or create cart
+   
     let cart = await Cart.findOne({ buyerId: req.userId });
 
     if (!cart) {
       cart = new Cart({ buyerId: req.userId, items: [] });
     }
 
-    // Clean invalid items
+   
     cart.items = cart.items.filter(item => item.productId);
 
     const itemIndex = cart.items.findIndex(
       item => item.productId.toString() === productId
     );
 
-    // 5️⃣ If item already exists in cart
+   
     if (itemIndex > -1) {
 
       if (setQuantity) {
 
-        // 🔥 REMOVE ITEM COMPLETELY
+       
         if (quantity === 0) {
           cart.items.splice(itemIndex, 1);
         } else {
@@ -207,7 +207,7 @@ export const addToCart = async (req, res) => {
 
     } else {
 
-      // 6️⃣ If item does NOT exist in cart
+    
       if (quantity > 0) {
 
         if (quantity > product.stock) {
@@ -220,10 +220,10 @@ export const addToCart = async (req, res) => {
       }
     }
 
-    // 7️⃣ Save cart
+  
     await cart.save();
 
-    // 8️⃣ Populate cart
+  
     const populatedCart = await Cart.findById(cart._id)
       .populate('items.productId', 'name price images stock sellerId');
 
@@ -237,7 +237,7 @@ export const updateCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
-    // 1️⃣ Validate
+   
     if (!productId) {
       return res.status(400).json({ msg: "Product ID is required" });
     }
@@ -246,20 +246,20 @@ export const updateCart = async (req, res) => {
       return res.status(400).json({ msg: "Valid quantity is required" });
     }
 
-    // 2️⃣ Find product
+  
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ msg: "Product not found" });
     }
 
-    // 3️⃣ Find cart
+    
     const cart = await Cart.findOne({ buyerId: req.userId });
 
     if (!cart) {
       return res.status(404).json({ msg: "Cart not found" });
     }
 
-    // 4️⃣ Find item inside cart
+   
     const itemIndex = cart.items.findIndex(
       item => item.productId.toString() === productId
     );
@@ -268,11 +268,11 @@ export const updateCart = async (req, res) => {
       return res.status(404).json({ msg: "Item not found in cart" });
     }
 
-    // 5️⃣ If quantity = 0 → REMOVE item
+   
     if (quantity === 0) {
       cart.items.splice(itemIndex, 1);
     } else {
-      // Check stock
+      
       if (quantity > product.stock) {
         return res.status(400).json({
           msg: `Only ${product.stock} items available in stock`
@@ -282,10 +282,10 @@ export const updateCart = async (req, res) => {
       cart.items[itemIndex].quantity = quantity;
     }
 
-    // 6️⃣ Save cart
+   
     await cart.save();
 
-    // 7️⃣ Populate updated cart
+   
     const updatedCart = await Cart.findById(cart._id)
       .populate('items.productId', 'name price images stock sellerId');
 
@@ -297,10 +297,9 @@ export const updateCart = async (req, res) => {
 };
 
 
-// Get all orders for the logged-in buyer
 export const getMyOrders = async (req, res) => {
   try {
-    // Find all orders matching the buyer's ID, and sort them by newest first (-1)
+    
     const orders = await Order.find({ buyerId: req.userId }).sort({ createdAt: -1 });
     
     if (!orders || orders.length === 0) {
@@ -340,7 +339,7 @@ export const getCartDetails = async (req, res) => {
       return res.status(200).json({ items: [] });
     }
 
-    // If any product was deleted, populated productId becomes null. Clean these items.
+    
     const beforeCount = cart.items.length;
     cart.items = cart.items.filter((item) => item.productId);
     if (cart.items.length !== beforeCount) {
@@ -356,14 +355,12 @@ export const getCartDetails = async (req, res) => {
 export const buy = async (req, res) => {
   try {
     console.log('🛒 BUY REQUEST - User:', req.userId);
-    
-    // 1. Get Cart
+
     const cart = await Cart.findOne({ buyerId: req.userId }).populate('items.productId');
     if (!cart || cart.items.length === 0) return res.status(400).json({ msg: "Cart is empty" });
 
     console.log('📦 Cart items count:', cart.items.length);
 
-    // 2. CHECK PROFILE FOR ADDRESS (Critical Step)
     const userProfile = await Profile.findOne({ userId: req.userId });
     if (!userProfile || !userProfile.address || !userProfile.address.street) {
       return res.status(400).json({ msg: "Please complete your Market Profile (Address) before buying!" });
@@ -378,7 +375,7 @@ export const buy = async (req, res) => {
         return res.status(400).json({ msg: "One or more items in your cart no longer exist." });
       }
 
-      // Fetch the product directly to ensure we can save it properly
+      
       const productId = item.productId._id || item.productId;
       const product = await Product.findById(productId);
       
@@ -392,12 +389,11 @@ export const buy = async (req, res) => {
         return res.status(400).json({ msg: `Item ${product.name} is out of stock` });
       }
      
-      // Decrement stock and save
       const oldStock = product.stock;
       product.stock -= item.quantity;
       await product.save();
       
-      // Verify the save worked
+     
       const verifyProduct = await Product.findById(productId);
       console.log(`✅ Stock updated: ${product.name} from ${oldStock} to ${verifyProduct.stock} (verified: ${verifyProduct.stock})`);
 
@@ -412,17 +408,16 @@ export const buy = async (req, res) => {
       });
     }
 
-    // 4. Create Order
     const newOrder = new Order({
       buyerId: req.userId,
       items: orderItems,
       totalAmount,
-      shippingAddress: userProfile.address, // Using data from Profile
+      shippingAddress: userProfile.address, 
       paymentId: "DEMO_" + Date.now()
     });
     await newOrder.save();
 
-    // 5. Clear Cart
+   
     cart.items = [];
     await cart.save();
 

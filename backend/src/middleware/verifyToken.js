@@ -2,7 +2,7 @@ import userSchema from "../models/userSchema.js";
 import dotenv from "dotenv/config";
 import jwt from "jsonwebtoken";
 
-// ---> NEW IMPORTS <---
+
 import Profile from "../models/profileSchema.js";
 import Cart from "../models/cartSchema.js";
 
@@ -43,23 +43,16 @@ export const verifyToken = async (req, res) => {
                     user.isVerified = true
                     await user.save()
 
-                    // ==========================================
-                    // ---> NEW LOGIC: CREATE PROFILE & CART <---
-                    // ==========================================
+                    
                     const profileExists = await Profile.findOne({ userId: user._id });
                     if (!profileExists) {
-                        // 1. Create the blank Profile for address/business details
+                    
                         await Profile.create({ userId: user._id });
                         
-                        // 2. Create the empty Cart
                         await Cart.create({ buyerId: user._id, items: [] });
                         
-                        // Note on Orders: We DO NOT create an Order document here. 
-                        // Order documents should only be created when a user actually 
-                        // completes a checkout. The Order history is just a collection 
-                        // of those checkout documents.
                     }
-                    // ==========================================
+                   
 
                     return res.status(200).json({
                         success: true,

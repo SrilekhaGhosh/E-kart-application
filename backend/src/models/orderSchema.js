@@ -6,7 +6,7 @@ const orderSchema = new mongoose.Schema({
     ref: "backenduser",
     required: true
   },
-  shippingAddress: { // Snapshot from Profile
+  shippingAddress: { 
     street: String,
     city: String,
     zip: String,
@@ -14,9 +14,9 @@ const orderSchema = new mongoose.Schema({
   },
   items: [{
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "backenduser" }, // Essential for Seller Dashboard
-    name: String,   // Snapshot
-    price: Number,  // Snapshot
+    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "backenduser" }, 
+    name: String,   
+    price: Number,  
     quantity: Number,
     image: String
   }],

@@ -1,5 +1,5 @@
 import express from "express";
-import { hasToken } from "../middleware/hasToken.js"; // Using YOUR existing middleware
+import { hasToken } from "../middleware/hasToken.js"; 
 
 import { 
   getAllProducts, 
@@ -29,9 +29,9 @@ const marketRoute = express.Router();
 marketRoute.get("/products", getAllProducts);
 marketRoute.get("/categories", getMarketCategories);
 
-// --- BUYER FEATURES (Protected by Token) ---
-marketRoute.get("/profile", hasToken, getMarketProfile);      // Gets Address + Orders
-marketRoute.put("/profile", hasToken, updateMarketProfile);   // Updates Address/Business Info
+// --- BUYER FEATURES ---
+marketRoute.get("/profile", hasToken, getMarketProfile);      
+marketRoute.put("/profile", hasToken, updateMarketProfile);   
 marketRoute.post("/cart", hasToken, addToCart);
 marketRoute.put("/cart", hasToken, updateCart);
 marketRoute.delete("/product/:id", hasToken, deleteProduct);

@@ -22,15 +22,15 @@ app.use(express.json())
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
 
-// Serve static files for profile uploads
+
 app.use("/upload", express.static(path.join(__dirname, "src/upload")))
 
-// --- DEFINE ROUTES ---
-app.use("/user", userRoute)      // Your Auth & Profile Image
 
-app.use("/market", marketRoute)  // <--- NEW: Products, Cart, Buying
+app.use("/user", userRoute)      
 
-// --- DATABASE & SERVER ---
+app.use("/market", marketRoute)  
+
+
 dbConnect()
 
 app.listen(port, () => {

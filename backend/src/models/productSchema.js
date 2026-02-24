@@ -37,8 +37,8 @@ const productSchema = new mongoose.Schema({
     default: true }
 }, { timestamps: true });
 
-// Ensure a seller can't duplicate product names
+
 productSchema.index({ sellerId: 1, name: 1 }, { unique: true });
 
-// check if "Product" exists in mongoose.models, otherwise create it
+
 export default mongoose.models.Product || mongoose.model("Product", productSchema);
