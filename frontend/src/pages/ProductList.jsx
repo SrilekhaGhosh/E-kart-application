@@ -135,8 +135,8 @@ const ProductList = () => {
   =============================== */
   if (user && user.role === "seller") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4">
+        <div className="bg-white/80 backdrop-blur p-8 rounded-3xl shadow border border-gray-200 text-center max-w-lg w-full">
           <h2 className="text-2xl font-bold mb-4">
             Sellers cannot view all products.
           </h2>
@@ -157,34 +157,66 @@ const ProductList = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+      <div className="max-w-6xl mx-auto px-4 py-8">
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold">All Products</h2>
-          <button onClick={() => navigate('/home')} className="text-blue-600 hover:text-blue-800 mb-2">← Back to Home</button>
-
-          {token && (
+        {/* Top bar */}
+        <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-3xl shadow-sm p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <button
-              onClick={() => navigate("/cart")}
-              className="relative bg-blue-600 text-white px-6 py-3 rounded-lg 
-                         hover:bg-blue-700 transition shadow-lg"
+              type="button"
+              onClick={() => navigate("/home")}
+              className="flex items-center gap-3"
             >
-              Cart
-              {cartItemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white 
-                                 text-xs font-bold rounded-full h-6 w-6 
-                                 flex items-center justify-center">
-                  {cartItemCount}
-                </span>
-              )}
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-extrabold shadow-sm">
+                E
+              </div>
+              <div className="leading-tight text-left">
+                <div className="text-lg sm:text-xl font-extrabold text-gray-900">EKart</div>
+                <div className="text-xs text-gray-500">Browse products</div>
+              </div>
             </button>
-          )}
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/home")}
+                className="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition"
+              >
+                ← Back
+              </button>
+
+              {token && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/cart")}
+                  className="relative px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:shadow-md hover:bg-blue-700 transition"
+                >
+                  Cart
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">All Products</h2>
+              <p className="text-sm text-gray-600 mt-1">Search, filter, and scroll to load more.</p>
+            </div>
+
+            <div className="text-xs text-gray-600">
+              Showing {items.length} of {totalItems} (limit {limit})
+            </div>
+          </div>
         </div>
 
         {/* Search + Sort */}
-        <div className="bg-white rounded-xl shadow p-4 mb-6 flex flex-col gap-3">
+        <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-3xl shadow-sm p-4 sm:p-6 mb-6 flex flex-col gap-3">
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <form
               className="flex flex-1 gap-2"
@@ -198,11 +230,11 @@ const ProductList = () => {
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search (name/description/category)"
-                className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
               />
               <button
                 type="submit"
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="px-5 py-3 bg-blue-600 text-white rounded-2xl font-extrabold hover:bg-blue-700 transition"
               >
                 Search
               </button>
@@ -216,7 +248,7 @@ const ProductList = () => {
                   setSortKey(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border rounded-lg px-3 py-2 bg-white"
+                className="border border-gray-300 rounded-2xl px-4 py-3 bg-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               >
                 <option value="newest">Newest</option>
                 <option value="priceAsc">Price: Low → High</option>
@@ -246,7 +278,7 @@ const ProductList = () => {
               <button
                 type="button"
                 onClick={() => setCategoryOpen((v) => !v)}
-                className="w-full border rounded-lg px-3 py-2 bg-white text-left"
+                className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-white text-left text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               >
                 {appliedCategories.length
                   ? `Categories (${appliedCategories.length})`
@@ -254,7 +286,7 @@ const ProductList = () => {
               </button>
 
               {categoryOpen && (
-                <div className="absolute z-20 mt-2 w-full bg-white border rounded-lg shadow p-3 max-h-56 overflow-auto">
+                <div className="absolute z-20 mt-2 w-full bg-white/95 backdrop-blur border border-gray-200 rounded-2xl shadow p-3 max-h-56 overflow-auto">
                   {categoryOptions.length === 0 ? (
                     <div className="text-sm text-gray-600">No categories found</div>
                   ) : (
@@ -262,7 +294,7 @@ const ProductList = () => {
                       {categoryOptions.map((c) => {
                         const checked = draftCategories.includes(c);
                         return (
-                          <label key={c} className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
+                          <label key={c} className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer select-none">
                             <input
                               type="checkbox"
                               checked={checked}
@@ -273,6 +305,7 @@ const ProductList = () => {
                                     : [...prev, c]
                                 );
                               }}
+                              className="accent-indigo-600"
                             />
                             <span>{c}</span>
                           </label>
@@ -285,7 +318,7 @@ const ProductList = () => {
                     <button
                       type="button"
                       onClick={() => setDraftCategories([])}
-                      className="px-3 py-1.5 bg-white border rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+                      className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition"
                     >
                       Clear
                     </button>
@@ -296,7 +329,7 @@ const ProductList = () => {
                         setCurrentPage(1);
                         setCategoryOpen(false);
                       }}
-                      className="flex-1 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-black transition"
+                      className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition"
                     >
                       Apply Categories
                     </button>
@@ -310,7 +343,7 @@ const ProductList = () => {
               placeholder="Min price"
               type="number"
               min="0"
-              className="border rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
             />
             <input
               value={maxPriceText}
@@ -318,12 +351,12 @@ const ProductList = () => {
               placeholder="Max price"
               type="number"
               min="0"
-              className="border rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white"
             />
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-black transition"
+                className="flex-1 px-5 py-3 bg-indigo-600 text-white rounded-2xl font-extrabold hover:bg-indigo-700 transition"
               >
                 Apply
               </button>
@@ -342,7 +375,7 @@ const ProductList = () => {
                   setMaxPrice("");
                   setCurrentPage(1);
                 }}
-                className="px-5 py-2 bg-white border rounded-lg font-semibold hover:bg-gray-50 transition"
+                className="px-5 py-3 bg-white border border-gray-200 rounded-2xl font-extrabold hover:bg-gray-50 transition"
               >
                 Clear
               </button>
@@ -365,9 +398,7 @@ const ProductList = () => {
             <div
               key={product._id}
               onClick={() => navigate(`/product/${product._id}`)}
-              className="bg-white rounded-xl shadow-md overflow-hidden 
-                         cursor-pointer hover:shadow-xl hover:scale-105 
-                         transition duration-300"
+              className="bg-white/80 backdrop-blur rounded-3xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition"
             >
               <img
                 src={
@@ -379,8 +410,8 @@ const ProductList = () => {
                 className="h-56 w-full object-cover"
               />
 
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-center text-gray-800">
+              <div className="p-5">
+                <h3 className="text-lg font-extrabold text-center text-gray-900">
                   {product.name}
                 </h3>
               </div>
@@ -390,9 +421,6 @@ const ProductList = () => {
 
         {/* Infinite scroll footer */}
         <div className="mt-10 flex flex-col items-center justify-center gap-2">
-          <div className="text-xs text-gray-600">
-            Showing {items.length} of {totalItems} (limit {limit})
-          </div>
           {status === "loading" && currentPage > 1 && (
             <div className="text-sm text-gray-700 min-h-[24px]">Loading more...</div>
           )}

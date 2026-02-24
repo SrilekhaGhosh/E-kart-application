@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchProductById } from "../slices/productsSlice";
 import { addToCart } from "../slices/cartSlice";
 import toast from "react-hot-toast";
+import Header from "../components/Header";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -87,29 +88,81 @@ const ProductDetails = () => {
   };
 
   if (status === "loading") {
-    return <div className="text-center mt-10">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+        <Header />
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow border border-gray-200 p-10 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="text-gray-700 font-semibold mt-4">Loading product...</div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (status === "failed") {
-    return <div className="text-center mt-10 text-red-500">{error}</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+        <Header />
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow border border-red-200 p-10 text-center">
+            <div className="text-red-600 font-extrabold text-lg">Failed to load product</div>
+            <div className="text-sm text-gray-700 mt-2">{error}</div>
+            <button
+              type="button"
+              onClick={() => navigate("/products")}
+              className="mt-6 px-6 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            >
+              Back to Products
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!selectedProduct) {
-    return <div className="text-center mt-10">Product not found</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+        <Header />
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow border border-gray-200 p-10 text-center">
+            <div className="text-gray-900 font-extrabold text-lg">Product not found</div>
+            <div className="text-sm text-gray-600 mt-2">The item may have been removed or the link is incorrect.</div>
+            <button
+              type="button"
+              onClick={() => navigate("/products")}
+              className="mt-6 px-6 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            >
+              Browse Products
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+      <Header />
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <div>
+            <div className="text-sm text-gray-600">Product</div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">{selectedProduct.name}</h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/products")}
+            className="px-5 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 font-semibold hover:bg-gray-50 transition"
+          >
+            ← Back to Products
+          </button>
+        </div>
 
-        <button
-          onClick={() => navigate("/products")}
-          className="mb-6 bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
-        >
-          ← Back
-        </button>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white/80 backdrop-blur-lg shadow border border-gray-200 rounded-3xl p-6 md:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Gallery */}
           <div className="flex gap-4">
             <div className="hidden sm:flex flex-col gap-3 w-20">
@@ -118,7 +171,7 @@ const ProductDetails = () => {
                   key={`${src}-${idx}`}
                   type="button"
                   onClick={() => setActiveIndex(idx)}
-                  className={`border rounded-lg overflow-hidden bg-white ${
+                  className={`border rounded-2xl overflow-hidden bg-white shadow-sm ${
                     idx === activeIndex ? "border-blue-600" : "border-gray-200"
                   }`}
                 >
@@ -131,7 +184,7 @@ const ProductDetails = () => {
               <button
                 type="button"
                 onClick={() => openViewer(activeIndex)}
-                className="w-full border border-gray-200 rounded-2xl overflow-hidden bg-white"
+                className="w-full border border-gray-200 rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-md transition"
               >
                 <img
                   src={images[activeIndex]}
@@ -146,7 +199,7 @@ const ProductDetails = () => {
                     key={`${src}-m-${idx}`}
                     type="button"
                     onClick={() => setActiveIndex(idx)}
-                    className={`border rounded-lg overflow-hidden bg-white shrink-0 ${
+                    className={`border rounded-2xl overflow-hidden bg-white shrink-0 shadow-sm ${
                       idx === activeIndex ? "border-blue-600" : "border-gray-200"
                     }`}
                   >
@@ -163,10 +216,6 @@ const ProductDetails = () => {
 
           {/* Details */}
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight">
-              {selectedProduct.name}
-            </h1>
-
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold">
                 Category: {selectedProduct.category}
@@ -182,54 +231,68 @@ const ProductDetails = () => {
               )}
             </div>
 
-            <div className="mt-4">
-              <div className="text-3xl font-extrabold text-gray-900">
-                ₹{Number.isFinite(priceValue) ? priceValue.toFixed(0) : selectedProduct.price}
+            <div className="mt-5 rounded-3xl border border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-5">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold text-gray-600">Price</div>
+                  <div className="text-3xl font-extrabold text-gray-900 mt-1">
+                    ₹{Number.isFinite(priceValue) ? priceValue.toFixed(0) : selectedProduct.price}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Inclusive of all taxes</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-semibold text-gray-600">Availability</div>
+                  <div className={`text-sm font-extrabold mt-1 ${inStock ? "text-green-700" : "text-red-700"}`}>
+                    {inStock ? "Ready to ship" : "Currently unavailable"}
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-gray-500 mt-1">Inclusive of all taxes</div>
+
+              <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!inStock}
+                  className={`px-6 py-3 rounded-2xl text-white font-extrabold transition shadow-md hover:shadow-xl ${
+                    !inStock
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : isInCart
+                        ? "bg-gray-900 hover:bg-black"
+                        : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  {!inStock ? "Out of Stock" : isInCart ? "Add Another" : "Add To Cart"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/cart")}
+                  className="px-6 py-3 rounded-2xl bg-white border border-gray-200 font-extrabold text-gray-900 hover:bg-gray-50 transition"
+                >
+                  Go To Cart
+                </button>
+              </div>
             </div>
 
             <div className="mt-6">
-              <div className="text-lg font-bold text-gray-900 mb-2">Description</div>
-              <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {selectedProduct.description}
+              <div className="text-lg font-extrabold text-gray-900 mb-2">Description</div>
+              <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedProduct.description}
+                </div>
               </div>
-            </div>
-
-            <div className="mt-7 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={handleAddToCart}
-                disabled={!inStock}
-                className={`px-6 py-3 rounded-xl text-white font-semibold transition ${
-                  !inStock
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : isInCart
-                      ? "bg-gray-900 hover:bg-black"
-                      : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                {!inStock ? "Out of Stock" : isInCart ? "Add Another" : "Add To Cart"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate("/cart")}
-                className="px-6 py-3 rounded-xl bg-white border border-gray-200 font-semibold text-gray-900 hover:bg-gray-50 transition"
-              >
-                Go To Cart
-              </button>
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+              <div className="bg-white border border-gray-200 rounded-2xl p-4">
                 <div className="text-xs text-gray-500">Product ID</div>
                 <div className="text-sm font-semibold text-gray-800 break-all">{selectedProduct._id}</div>
               </div>
-              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+              <div className="bg-white border border-gray-200 rounded-2xl p-4">
                 <div className="text-xs text-gray-500">Photos</div>
                 <div className="text-sm font-semibold text-gray-800">{images.length}</div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -242,13 +305,13 @@ const ProductDetails = () => {
             if (e.target === e.currentTarget) setViewerOpen(false);
           }}
         >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-5xl overflow-hidden border border-gray-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="text-sm font-semibold text-gray-800 truncate">{selectedProduct.name}</div>
               <button
                 type="button"
                 onClick={() => setViewerOpen(false)}
-                className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold"
+                className="px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 font-extrabold"
                 aria-label="Close"
               >
                 X

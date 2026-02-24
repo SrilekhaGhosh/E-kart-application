@@ -179,6 +179,7 @@ const SellerDashboard = () => {
     // State to hold selected image files
     const [imageFiles, setImageFiles] = useState([]);
     const [editId, setEditId] = useState(null);
+    const [isSavingProduct, setIsSavingProduct] = useState(false);
 
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -379,12 +380,35 @@ const SellerDashboard = () => {
         });
     };
 
+    const isFormComplete = useMemo(() => {
+        const nameOk = (form.name || "").toString().trim().length > 0;
+        const descriptionOk = (form.description || "").toString().trim().length > 0;
+        const categoryOk = (categoryQuery || "").toString().trim().length > 0;
+
+        const priceText = (form.price ?? "").toString().trim();
+        const stockText = (form.stock ?? "").toString().trim();
+        const priceNum = Number(priceText);
+        const stockNum = Number(stockText);
+        const priceOk = priceText !== "" && !Number.isNaN(priceNum) && priceNum >= 0;
+        const stockOk = stockText !== "" && !Number.isNaN(stockNum) && stockNum >= 0;
+
+        const imagesOk = editId ? true : imageFiles.length > 0;
+        return nameOk && descriptionOk && categoryOk && priceOk && stockOk && imagesOk;
+    }, [form.name, form.description, form.price, form.stock, categoryQuery, editId, imageFiles.length]);
+
     const handleAddOrEditProduct = async (e) => {
         e.preventDefault();
+
+        if (isSavingProduct) return;
 
         const categoryValue = (form.category || "").toString().trim().toLowerCase();
         if (!categoryValue) {
             toast.error("Please select or add a category");
+            return;
+        }
+
+        if (!editId && !imageFiles.length) {
+            toast.error("Please select at least one image");
             return;
         }
         
@@ -402,6 +426,7 @@ const SellerDashboard = () => {
         }
 
         try {
+            setIsSavingProduct(true);
             if (editId) {
                 await axios.put(apiUrl(`/market/seller/product/${editId}`), data, {
                     headers: {
@@ -411,8 +436,6 @@ const SellerDashboard = () => {
                 toast.success('Product updated');
                 setEditId(null);
             } else {
-                if (!imageFiles.length) return toast.error("Please select at least one image");
-                
                 await axios.post(apiUrl('/market/seller/product'), data, {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -426,11 +449,14 @@ const SellerDashboard = () => {
             setCategoryQuery("");
             setCategoryDropdownOpen(false);
             setImageFiles([]);
-            document.getElementById('fileInput').value = ""; // Clear file input
+            const inputEl = document.getElementById('fileInput');
+            if (inputEl) inputEl.value = ""; // Clear file input
             dispatch(fetchSellerProducts(token));
             dispatch(fetchSellerHistory(token));
         } catch (err) {
             toast.error(err.response?.data?.message || err.response?.data?.msg || 'Error');
+        } finally {
+            setIsSavingProduct(false);
         }
     };
 
@@ -575,6 +601,7 @@ const SellerDashboard = () => {
                                         setCategoryDropdownOpen(false);
                                         setImageFiles([]);
                                     }}
+                                    disabled={isSavingProduct}
                                 >
                                     Cancel
                                 </button>
@@ -582,10 +609,10 @@ const SellerDashboard = () => {
                         </div>
 
                         <form onSubmit={handleAddOrEditProduct} className="space-y-3">
-                            <input name="name" value={form.name} onChange={handleInput} placeholder="Name" className="w-full border px-3 py-2 rounded-lg" required />
+                            <input name="name" value={form.name} onChange={handleInput} placeholder="Name" className="w-full border px-3 py-2 rounded-lg" required disabled={isSavingProduct} />
                             <div className="grid grid-cols-2 gap-3">
-                                <input name="price" value={form.price} onChange={handleInput} placeholder="Price" type="number" className="w-full border px-3 py-2 rounded-lg" required />
-                                <input name="stock" value={form.stock} onChange={handleInput} placeholder="Stock" type="number" className="w-full border px-3 py-2 rounded-lg" required />
+                                <input name="price" value={form.price} onChange={handleInput} placeholder="Price" type="number" className="w-full border px-3 py-2 rounded-lg" required disabled={isSavingProduct} />
+                                <input name="stock" value={form.stock} onChange={handleInput} placeholder="Stock" type="number" className="w-full border px-3 py-2 rounded-lg" required disabled={isSavingProduct} />
                             </div>
                             <div className="relative" data-category-dropdown="1">
                                 <input
@@ -600,6 +627,7 @@ const SellerDashboard = () => {
                                     placeholder="Category (search or type to add)"
                                     className="w-full border px-3 py-2 rounded-lg"
                                     required
+                                    disabled={isSavingProduct}
                                 />
 
                                 {categoryDropdownOpen && (
@@ -651,7 +679,7 @@ const SellerDashboard = () => {
                                     </div>
                                 )}
                             </div>
-                            <input name="description" value={form.description} onChange={handleInput} placeholder="Description" className="w-full border px-3 py-2 rounded-lg" required />
+                            <input name="description" value={form.description} onChange={handleInput} placeholder="Description" className="w-full border px-3 py-2 rounded-lg" required disabled={isSavingProduct} />
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
@@ -663,6 +691,7 @@ const SellerDashboard = () => {
                                     onChange={handleFileChange}
                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                                     required={!editId}
+                                    disabled={isSavingProduct}
                                 />
                                 <div className="text-xs text-gray-500 mt-1">
                                     {imageFiles.length ? (
@@ -676,6 +705,7 @@ const SellerDashboard = () => {
                                                     if (el) el.value = '';
                                                 }}
                                                 className="font-semibold text-gray-700 hover:text-gray-900"
+                                                disabled={isSavingProduct}
                                             >
                                                 Clear selection
                                             </button>
@@ -689,8 +719,38 @@ const SellerDashboard = () => {
                                 )}
                             </div>
 
-                            <button type="submit" className="w-full py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold">
-                                {editId ? 'Update Product' : 'Add Product'}
+                            <button
+                                type="submit"
+                                disabled={isSavingProduct || !isFormComplete}
+                                className="w-full inline-flex items-center justify-center py-2.5 rounded-xl transition font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {isSavingProduct ? (
+                                    <>
+                                        <svg
+                                            className="mr-3 size-5 animate-spin"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                                fill="none"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                            />
+                                        </svg>
+                                        Processing…
+                                    </>
+                                ) : (
+                                    <>{editId ? 'Update Product' : 'Add Product'}</>
+                                )}
                             </button>
                         </form>
                     </div>
